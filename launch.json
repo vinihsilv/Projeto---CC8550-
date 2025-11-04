@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "name": "Run CLI",
+            "type": "python",
+            "request": "launch",
+            "program": "cli/main_cli.py",
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        }
+    ]
+}
