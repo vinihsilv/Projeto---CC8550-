@@ -5,4 +5,4 @@ from dataclasses import dataclass
 class Category:
     id: int
     name: str
-    description: str = ""
+    description: str | None = None
