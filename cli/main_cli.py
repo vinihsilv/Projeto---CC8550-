@@ -1,6 +1,7 @@
 from src.controllers.user_controller import UserController
 from src.controllers.category_controller import CategoryController
 from src.controllers.transaction_controller import TransactionController
+from src.controllers.budget_controller import BudgetController
 
 
 def login_menu(user_controller):
@@ -91,16 +92,66 @@ def transaction_menu(transaction_controller):
             print("Opção inválida.")
 
 
+def budget_menu(budget_controller):
+    while True:
+        print("\n===== Menu de Orçamentos =====")
+        print("1. Criar orçamento")
+        print("2. Listar orçamentos")
+        print("3. Atualizar orçamento")
+        print("4. Deletar orçamento")
+        print("0. Voltar")
+
+        op = input("Escolha: ")
+
+        if op == "1":
+            category_id = input("ID da categoria: ")
+            year = int(input("Ano (YYYY): "))
+            month = int(input("Mês (1-12): "))
+            limit_value = float(input("Valor limite: "))
+
+            budget_controller.create_budget(category_id, year, month, limit_value)
+
+        elif op == "2":
+            budget_controller.list_budgets()
+
+        elif op == "3":
+            bid = input("ID do orçamento: ")
+
+            print("Deixe em branco para não alterar")
+            category_id = input("Nova categoria: ")
+            year = input("Novo ano: ")
+            month = input("Novo mês: ")
+            limit_value = input("Novo limite: ")
+
+            budget_controller.update_budget(
+                bid,
+                category_id if category_id else None,
+                int(year) if year else None,
+                int(month) if month else None,
+                float(limit_value) if limit_value else None,
+            )
+
+        elif op == "4":
+            bid = input("ID do orçamento: ")
+            budget_controller.delete_budget(bid)
+
+        elif op == "0":
+            return
+
+        else:
+            print("Opção inválida.")
+
+
 def main():
     user_controller = UserController()
     category_controller = CategoryController()
     transaction_controller = TransactionController()
+    budget_controller = BudgetController()
 
     print("===== Bem-vindo ao Gerenciador Financeiro =====")
 
     logged_user = None
 
-    # Loop de login
     while not logged_user:
         print("\n1. Login")
         print("2. Criar conta")
@@ -124,12 +175,12 @@ def main():
         else:
             print("Opção inválida.")
 
-    # Menu principal
     while True:
         print("\n===== Menu Principal =====")
         print("1. Categorias")
         print("2. Transações")
-        print("3. Logout")
+        print("3. Orçamentos")
+        print("4. Logout")
         print("0. Sair")
 
         op = input("Escolha: ")
@@ -141,9 +192,12 @@ def main():
             transaction_menu(transaction_controller)
 
         elif op == "3":
+            budget_menu(budget_controller)
+
+        elif op == "4":
             logged_user = None
             print("Logout realizado.")
-            return main()  # reinicia fluxo
+            return main()
 
         elif op == "0":
             print("Saindo...")
