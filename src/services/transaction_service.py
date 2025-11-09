@@ -33,7 +33,7 @@ class TransactionService:
         category_id: int,
         description: str | None = None,
     ) -> None:
-        # Valida categoria pertencente ao usuário
+        # --- Valida categoria ---
         category = self.category_repository.get_category(category_id)
         if not category:
             raise ValueError(f"Categoria não encontrada: id={category_id}")
@@ -42,29 +42,26 @@ class TransactionService:
                 f"Categoria não pertence ao usuário. category.user_id={category.user_id}, user_id={user_id}"
             )
 
-        # Valida conta (opcional, mas recomendado)
+        # --- Valida conta ---
         account = self.account_repository.get(account_id)
         if not account:
             raise ValueError(f"Conta não encontrada: id={account_id}")
-        if hasattr(account, "user_id") and int(getattr(account, "user_id")) != int(
-            user_id
-        ):
+        if int(account.user_id) != int(user_id):
             raise ValueError(
-                f"Conta não pertence ao usuário. account.user_id={getattr(account, 'user_id')}, user_id={user_id}"
+                f"Conta não pertence ao usuário. account.user_id={account.user_id}, user_id={user_id}"
             )
 
-        transactions = self.transaction_repository.list_by_account(account_id)
-        current_balance = getattr(account, "balance", 0)  # saldo inicial da conta
-        current_balance += sum(
-            t.amount if t.type == "income" else -t.amount for t in transactions
-        )
+        # --- Saldo atual da conta (não somar transações antigas) ---
+        current_balance = getattr(account, "balance", 0)
 
+        # --- Calcula saldo futuro e valida ---
         new_balance = current_balance + (amount if type_ == "income" else -amount)
         if new_balance < 0:
             raise ValueError(
                 f"Saldo insuficiente: saldo atual {current_balance}, gasto solicitado {amount}"
             )
 
+        # --- Verifica limite do orçamento ---
         if type_ == "expense":
             budget = self.budget_repository.list_by_category(category_id, user_id)
             if budget:
@@ -80,19 +77,21 @@ class TransactionService:
                         f"Gasto ultrapassa orçamento: {total_spent + amount} > {budget.limit_value}"
                     )
 
+        # --- Cria a transação ---
         transaction = Transaction(
             id=self._next_transaction_id(),
-            account_id=account_id,
             amount=amount,
             type=type_,
+            account_id=account_id,
             date=datetime.now(),
             category_id=category_id,
             description=description,
             user_id=user_id,
         )
-        # Adiciona account_id dinamicamente no objeto
-        setattr(transaction, "account_id", account_id)
         self.transaction_repository.create(transaction)
+
+        # --- Atualiza saldo da conta ---
+        self.account_repository.update(account_id, {"balance": new_balance})
 
     def list_transactions(self, user_id: int) -> List[Transaction]:
         return self.transaction_repository.list_by_user(user_id)
