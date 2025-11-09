@@ -1,49 +1,38 @@
+# src/services/budget_service.py
+from typing import List
 from src.models.budget import Budget
-from src.repositories.budget_repository import BudgetRepository
+from src.repositories.budget_repository import BudgetRepositoryInterface
 
 
 class BudgetService:
-    def __init__(self):
-        self.repository = BudgetRepository()
+    def __init__(self, repository: BudgetRepositoryInterface):
+        self.repository = repository
 
-    def create_budget(self, category_id, year, month, limit_value):
-        budgets = self.repository.list()
-
-        next_id = 1 if not budgets else max(b.id for b in budgets) + 1
-
-        budget = Budget(
-            id=next_id,
-            category_id=int(category_id),
-            year=int(year),
-            month=int(month),
-            limit_value=float(limit_value),
+    def create_budget(self, category_id: int, year: int, limit_value: float):
+        next_id = (
+            1
+            if not self.repository.list()
+            else max(b.id for b in self.repository.list()) + 1
+        )
+        self.repository.create(
+            Budget(
+                id=next_id, category_id=category_id, year=year, limit_value=limit_value
+            )
         )
 
-        self.repository.create(budget)
-
-    def list_budgets(self):
+    def list_budgets(self) -> List[Budget]:
         return self.repository.list()
 
-    def update_budget(
-        self, budget_id, category_id=None, year=None, month=None, limit_value=None
-    ):
-        budget = self.repository.get(int(budget_id))
+    def get_budget(self, budget_id: int) -> Budget:
+        budget = self.repository.get(budget_id)
         if not budget:
-            raise ValueError("Orçamento não encontrado.")
+            raise ValueError("Budget not found")
+        return budget
 
-        if category_id is not None:
-            budget.category_id = int(category_id)
+    def update_budget(self, budget_id: int, data: dict) -> None:
+        budget = self.get_budget(budget_id)
+        self.repository.update(budget_id, data)
 
-        if year is not None:
-            budget.year = int(year)
-
-        if month is not None:
-            budget.month = int(month)
-
-        if limit_value is not None:
-            budget.limit_value = float(limit_value)
-
-        self.repository.update(budget)
-
-    def delete_budget(self, budget_id):
-        self.repository.delete(int(budget_id))
+    def delete_budget(self, budget_id: int) -> None:
+        budget = self.get_budget(budget_id)
+        self.repository.delete(budget_id)
