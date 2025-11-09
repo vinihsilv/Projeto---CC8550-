@@ -9,8 +9,6 @@ class BudgetController:
     def __init__(
         self,
         repo: BudgetRepository,
-        account_repo: AccountRepository,
-        category_repo: CategoryRepository,
     ):
         self.service = BudgetService(repo)
 

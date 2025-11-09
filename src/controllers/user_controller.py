@@ -2,14 +2,12 @@
 from src.models.user import User
 from src.services.user_service import UserService
 from src.repositories.user_repository import UserRepository
-from utils.database import SessionLocal
+from src.utils.database import SessionLocal
 
 
 class UserController:
-    def __init__(self):
-        self.session = SessionLocal()
-        self.repo = UserRepository(self.session)
-        self.service = UserService(self.repo)
+    def __init__(self, repo: UserRepository):
+        self.service = UserService(repo)
 
     def create_user(self, name: str, email: str, password: str) -> User:
         return self.service.create_user(name, email, password)

@@ -2,6 +2,8 @@ from sqlalchemy.orm import Session
 from src.models.budget import Budget
 from src.interfaces.budget_repository_interface import BudgetRepositoryInterface
 
+from typing import List, Optional
+
 
 class BudgetRepository(BudgetRepositoryInterface):
     """SQLAlchemy implementation of BudgetRepository."""
@@ -14,7 +16,7 @@ class BudgetRepository(BudgetRepositoryInterface):
         self.session.commit()
         self.session.refresh(budget)
 
-    def list(self) -> list[Budget]:
+    def list(self) -> List[Budget]:
         return self.session.query(Budget).all()
 
     def get(self, budget_id: int) -> Budget | None:
@@ -35,7 +37,7 @@ class BudgetRepository(BudgetRepositoryInterface):
             self.session.delete(budget)
             self.session.commit()
 
-    def list_by_user(self, user_id: int) -> list[Budget]:
+    def list_by_user(self, user_id: int) -> List[Budget]:
         return self.session.query(Budget).filter_by(user_id=user_id).all()
 
     def list_by_category(self, category_id: int, user_id: int) -> Budget | None:
