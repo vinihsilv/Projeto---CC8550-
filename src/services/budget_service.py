@@ -8,7 +8,9 @@ class BudgetService:
     def __init__(self, repository: BudgetRepositoryInterface):
         self.repository = repository
 
-    def create_budget(self, category_id: int, year: int, limit_value: float):
+    def create_budget(
+        self, user_id: int, category_id: int, year: int, month: int, limit_value: float
+    ):
         next_id = (
             1
             if not self.repository.list()
@@ -16,12 +18,18 @@ class BudgetService:
         )
         self.repository.create(
             Budget(
-                id=next_id, category_id=category_id, year=year, limit_value=limit_value
+                id=next_id,
+                user_id=user_id,
+                month=month,
+                category_id=category_id,
+                year=year,
+                limit_value=limit_value,
             )
         )
 
-    def list_budgets(self) -> List[Budget]:
-        return self.repository.list()
+    def list_budgets(self, user_id: int):
+        # filtra somente budgets do usuário
+        return [b for b in self.repository.list() if b.user_id == user_id]
 
     def get_budget(self, budget_id: int) -> Budget:
         budget = self.repository.get(budget_id)

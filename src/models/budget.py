@@ -8,3 +8,4 @@ class Budget:
     month: int
     year: int
     limit_value: float
+    user_id: int

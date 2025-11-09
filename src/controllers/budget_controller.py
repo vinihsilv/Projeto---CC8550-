@@ -8,11 +8,11 @@ class BudgetController:
         repo = BudgetRepository()
         self.service = BudgetService(repo)
 
-    def create_budget(self, category_id, year, limit_value):
-        self.service.create_budget(category_id, year, limit_value)
+    def create_budget(self, user_id, category_id, year, month, limit_value):
+        self.service.create_budget(user_id, category_id, year, month, limit_value)
 
-    def list_budgets(self):
-        return self.service.list_budgets()
+    def list_budgets(self, user_id: int):
+        return self.service.list_budgets(user_id)
 
     def get_budget(self, budget_id):
         return self.service.get_budget(budget_id)

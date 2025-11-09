@@ -102,25 +102,31 @@ def budget_menu(budget_controller, logged_user):
 
         if op == "1":
             category_id = int(input("ID da categoria: "))
+            month = int(input("Mês (1-12): "))
             year = int(input("Ano: "))
             limit_value = float(input("Limite: "))
             budget_controller.create_budget(
                 user_id=logged_user.id,
                 category_id=category_id,
                 year=year,
+                month=month,
                 limit_value=limit_value,
             )
         elif op == "2":
-            budget_controller.list_budgets(user_id=logged_user.id)
+            print("Budgets listados.")
+            for b in budget_controller.list_budgets(user_id=logged_user.id):
+                print(
+                    f"ID: {b.id}, Categoria: {b.category_id}, Mês: {b.month}, Ano: {b.year}, Limite: {b.limit_value}"
+                )
         elif op == "3":
             bid = int(input("ID do budget: "))
             new_limit = float(input("Novo limite: "))
             budget_controller.update_budget(
-                budget_id=bid, user_id=logged_user.id, limit_value=new_limit
+                budget_id=bid, data={"limit_value": new_limit}
             )
         elif op == "4":
             bid = int(input("ID do budget: "))
-            budget_controller.delete_budget(budget_id=bid, user_id=logged_user.id)
+            budget_controller.delete_budget(budget_id=bid)
         elif op == "0":
             return
         else:

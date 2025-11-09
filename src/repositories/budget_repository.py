@@ -19,8 +19,15 @@ class BudgetRepository:
                 return b
         return None
 
-    def update(self, budget):
-        pass
+    def update(self, budget_id: int, data: dict) -> None:
+        budget = self.get(budget_id)
+        if not budget:
+            raise ValueError("Budget not found")
+
+        # Atualiza apenas os campos que existem em data
+        for key, value in data.items():
+            if hasattr(budget, key):
+                setattr(budget, key, value)
 
     def delete(self, budget_id):
         self._budgets = [b for b in self._budgets if b.id != budget_id]
