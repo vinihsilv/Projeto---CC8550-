@@ -17,10 +17,13 @@ class UserRepository(UserRepositoryInterface):
     def list(self) -> list[User]:
         return self.session.query(User).all()
 
+    def get(self, id: int) -> User | None:
+        return self.session.query(User).filter_by(id=id).first()
+
     def update(self, id: int, data: dict) -> None:
         user = self.session.query(User).filter_by(id=id).first()
         if not user:
-            return
+            raise ValueError("User not found")
         user.name = data.get("name", user.name)
         user.email = data.get("email", user.email)
         user.password = data.get("password", user.password)
