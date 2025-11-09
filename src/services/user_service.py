@@ -21,7 +21,6 @@ class UserService:
         return self.repository.list()
 
     def update_user(self, user_id: int, data: dict) -> None:
-        # Business rule: user must exist
         users = self.repository.list()
         if not any(u.id == user_id for u in users):
             raise ValueError("User not found.")
@@ -34,3 +33,11 @@ class UserService:
             raise ValueError("User not found.")
 
         self.repository.delete(user_id)
+
+    def authenticate(self, email: str, password: str) -> User | None:
+        """Returns a user if credentials match, otherwise None."""
+        users = self.repository.list()
+        for u in users:
+            if u.email == email and u.password == password:
+                return u
+        return None
