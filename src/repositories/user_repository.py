@@ -1,27 +1,33 @@
-from typing import List
+from sqlalchemy.orm import Session
 from src.models.user import User
 from src.interfaces.user_repository_interface import UserRepositoryInterface
 
 
 class UserRepository(UserRepositoryInterface):
-    """Implements an in-memory user repository."""
+    """SQLAlchemy implementation of UserRepository."""
 
-    def __init__(self):
-        self._users: List[User] = []
+    def __init__(self, session: Session):
+        self.session = session
 
     def create(self, user: User) -> None:
-        user.id = len(self._users) + 1
-        self._users.append(user)
+        self.session.add(user)
+        self.session.commit()
+        self.session.refresh(user)  # atualiza o id gerado
 
-    def list(self) -> List[User]:
-        return self._users
+    def list(self) -> list[User]:
+        return self.session.query(User).all()
 
     def update(self, id: int, data: dict) -> None:
-        for u in self._users:
-            if u.id == id:
-                u.name = data.get("name", u.name)
-                u.email = data.get("email", u.email)
-                u.password = data.get("password", u.password)
+        user = self.session.query(User).filter_by(id=id).first()
+        if not user:
+            return
+        user.name = data.get("name", user.name)
+        user.email = data.get("email", user.email)
+        user.password = data.get("password", user.password)
+        self.session.commit()
 
     def delete(self, id: int) -> None:
-        self._users = [u for u in self._users if u.id != id]
+        user = self.session.query(User).filter_by(id=id).first()
+        if user:
+            self.session.delete(user)
+            self.session.commit()

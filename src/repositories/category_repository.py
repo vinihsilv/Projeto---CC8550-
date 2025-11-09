@@ -1,37 +1,43 @@
-from src.interfaces.category_repository_interface import CategoryRepositoryInterface
+from sqlalchemy.orm import Session
 from src.models.category import Category
+from src.interfaces.category_repository_interface import CategoryRepositoryInterface
 
 
 class CategoryRepository(CategoryRepositoryInterface):
-    def __init__(self):
-        self.categories: list[Category] = []
-        self.next_id = 1
+    """SQLAlchemy implementation of CategoryRepository."""
 
-    def create(self, category: Category):
-        category.id = self.next_id
-        self.next_id += 1
-        self.categories.append(category)
+    def __init__(self, session: Session):
+        self.session = session
+
+    def create(self, category: Category) -> Category:
+        self.session.add(category)
+        self.session.commit()
+        self.session.refresh(category)
         return category
 
-    def list_all(self):
-        return self.categories
+    def list_all(self) -> list[Category]:
+        return self.session.query(Category).all()
 
-    def get_category(self, category_id: int):
-        return next((c for c in self.categories if c.id == category_id), None)
+    def get_category(self, category_id: int) -> Category | None:
+        return self.session.query(Category).filter_by(id=category_id).first()
 
-    def update(self, category_id: int, name: str):
+    def update(self, category_id: int, name: str) -> Category | None:
         category = self.get_category(category_id)
         if category:
             category.name = name
+            self.session.commit()
+            self.session.refresh(category)
             return category
         return None
 
-    def delete(self, category_id: int):
+    def delete(self, category_id: int) -> bool:
         category = self.get_category(category_id)
         if category:
-            self.categories.remove(category)
+            self.session.delete(category)
+            self.session.commit()
             return True
         return False
 
-    def get(self, category_id: int):
-        return next((c for c in self.categories if c.id == category_id), None)
+    # Mantido para compatibilidade
+    def get(self, category_id: int) -> Category | None:
+        return self.get_category(category_id)
