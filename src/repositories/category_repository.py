@@ -21,14 +21,16 @@ class CategoryRepository(CategoryRepositoryInterface):
     def get_category(self, category_id: int) -> Category | None:
         return self.session.query(Category).filter_by(id=category_id).first()
 
-    def update(self, category_id: int, name: str) -> Category | None:
-        category = self.get_category(category_id)
-        if category:
-            category.name = name
-            self.session.commit()
-            self.session.refresh(category)
-            return category
-        return None
+    def update(self, id: int, data: dict) -> None:
+        category = self.get(id)
+        if not category:
+            return
+        # atualiza os campos individualmente
+        if "name" in data:
+            category.name = data["name"]
+        if "user_id" in data:
+            category.user_id = data["user_id"]
+        self.session.commit()
 
     def delete(self, category_id: int) -> bool:
         category = self.get_category(category_id)
