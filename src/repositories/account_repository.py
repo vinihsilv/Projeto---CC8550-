@@ -11,8 +11,8 @@ class AccountRepository(AccountRepositoryInterface):
     def create(self, account: Account) -> None:
         self._accounts.append(account)
 
-    def list(self, user_id: int) -> List[Account]:
-        return [a for a in self._accounts if a.user_id == user_id]
+    def list(self) -> List[Account]:
+        return self._accounts
 
     def get(self, account_id: int) -> Account | None:
         for a in self._accounts:
@@ -21,11 +21,18 @@ class AccountRepository(AccountRepositoryInterface):
         return None
 
     def update(self, account_id: int, data: dict) -> None:
+        """
+        Atualiza os campos da conta com base no dicionário 'data'.
+        """
         account = self.get(account_id)
-        if account:
-            account.name = data.get("name", account.name)
-            if "balance" in data:
-                account.balance = data["balance"]
+        if not account:
+            raise ValueError(f"Conta com id {account_id} não encontrada")
+
+        for key, value in data.items():
+            if hasattr(account, key):
+                setattr(account, key, value)
+            else:
+                raise ValueError(f"Atributo '{key}' não existe na Account")
 
     def delete(self, account_id: int) -> None:
         self._accounts = [a for a in self._accounts if a.id != account_id]

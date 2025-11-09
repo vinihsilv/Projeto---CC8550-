@@ -17,8 +17,10 @@ class AccountController:
     def get_account(self, account_id):
         return self.service.get_account(account_id)
 
-    def update_account(self, account_id, data):
-        self.service.update_account(account_id, data)
+    def update_account(
+        self, account_id: int, name: str | None = None, balance: float | None = None
+    ):
+        self.service.update_account(account_id, name=name, balance=balance)
 
-    def delete_account(self, account_id):
-        self.service.delete_account(account_id)
+    def delete_account(self, account_id: int, user_id: int):
+        self.service.delete_account(account_id, user_id)

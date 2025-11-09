@@ -10,7 +10,7 @@ class AccountRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    def list(self, user_id: int) -> List[Account]:
+    def list(self) -> List[Account]:
         pass
 
     @abstractmethod

@@ -65,16 +65,24 @@ def account_menu(account_controller, logged_user):
         if op == "1":
             name = input("Nome da conta: ")
             account_controller.create_account(user_id=logged_user.id, name=name)
+            print("Conta criada.")
         elif op == "2":
             account_controller.list_accounts(user_id=logged_user.id)
+            print("Contas listadas.")
+            for c in account_controller.list_accounts(user_id=logged_user.id):
+                print(f"ID: {c.id}, Nome: {c.name}, Saldo: {c.balance}")
         elif op == "3":
-            aid = input("ID da conta: ")
-            new_name = input("Novo nome: ")
+            aid = int(input("ID da conta: "))
+            new_name = input("Novo nome (vazio para não alterar): ").strip() or None
+            new_balance_input = input("Novo saldo (vazio para não alterar): ").strip()
+            new_balance = float(new_balance_input) if new_balance_input else None
+
             account_controller.update_account(
-                aid, user_id=logged_user.id, name=new_name
+                account_id=aid, name=new_name, balance=new_balance
             )
+            print("Conta atualizada.")
         elif op == "4":
-            aid = input("ID da conta: ")
+            aid = int(input("ID da conta: "))
             account_controller.delete_account(aid, logged_user.id)
         elif op == "0":
             return
