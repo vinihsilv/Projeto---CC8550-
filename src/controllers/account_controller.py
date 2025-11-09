@@ -4,8 +4,7 @@ from src.repositories.account_repository import AccountRepository
 
 
 class AccountController:
-    def __init__(self):
-        repo = AccountRepository()
+    def __init__(self, repo: AccountRepository):
         self.service = AccountService(repo)
 
     def create_account(self, name, user_id):

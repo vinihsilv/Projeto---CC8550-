@@ -33,15 +33,32 @@ class TransactionService:
         category_id: int,
         description: str | None = None,
     ) -> None:
-        category = self.category_repository.get(category_id)
-        if not category or category.user_id != user_id:
-            raise ValueError("Categoria inválida ou não pertence ao usuário.")
+        # Valida categoria pertencente ao usuário
+        category = self.category_repository.get_category(category_id)
+        if not category:
+            raise ValueError(f"Categoria não encontrada: id={category_id}")
+        if int(category.user_id) != int(user_id):
+            raise ValueError(
+                f"Categoria não pertence ao usuário. category.user_id={category.user_id}, user_id={user_id}"
+            )
 
+        # Valida conta (opcional, mas recomendado)
         account = self.account_repository.get(account_id)
+        if not account:
+            raise ValueError(f"Conta não encontrada: id={account_id}")
+        if hasattr(account, "user_id") and int(getattr(account, "user_id")) != int(
+            user_id
+        ):
+            raise ValueError(
+                f"Conta não pertence ao usuário. account.user_id={getattr(account, 'user_id')}, user_id={user_id}"
+            )
+
         transactions = self.transaction_repository.list_by_account(account_id)
-        current_balance = sum(
+        current_balance = getattr(account, "balance", 0)  # saldo inicial da conta
+        current_balance += sum(
             t.amount if t.type == "income" else -t.amount for t in transactions
         )
+
         new_balance = current_balance + (amount if type_ == "income" else -amount)
         if new_balance < 0:
             raise ValueError(
@@ -49,7 +66,7 @@ class TransactionService:
             )
 
         if type_ == "expense":
-            budget = self.budget_repository.find_by_category(category_id, user_id)
+            budget = self.budget_repository.list_by_category(category_id, user_id)
             if budget:
                 total_spent = sum(
                     t.amount
@@ -65,6 +82,7 @@ class TransactionService:
 
         transaction = Transaction(
             id=self._next_transaction_id(),
+            account_id=account_id,
             amount=amount,
             type=type_,
             date=datetime.now(),

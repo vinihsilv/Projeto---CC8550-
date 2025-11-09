@@ -22,7 +22,7 @@ class CategoryService:
         return filtered
 
     def get_category(self, category_id: int) -> Category:
-        category = self.repository.get_by_id(category_id)
+        category = self.repository.get_category(category_id)
         if not category:
             raise ValueError("Category not found")
         return category

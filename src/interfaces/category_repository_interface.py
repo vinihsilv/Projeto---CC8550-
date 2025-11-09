@@ -13,7 +13,7 @@ class CategoryRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    def get_by_id(self, category_id: int):
+    def get_category(self, category_id: int):
         pass
 
     @abstractmethod

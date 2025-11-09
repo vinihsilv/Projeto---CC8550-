@@ -16,18 +16,18 @@ class CategoryRepository(CategoryRepositoryInterface):
     def list_all(self):
         return self.categories
 
-    def get_by_id(self, category_id: int):
+    def get_category(self, category_id: int):
         return next((c for c in self.categories if c.id == category_id), None)
 
     def update(self, category_id: int, name: str):
-        category = self.get_by_id(category_id)
+        category = self.get_category(category_id)
         if category:
             category.name = name
             return category
         return None
 
     def delete(self, category_id: int):
-        category = self.get_by_id(category_id)
+        category = self.get_category(category_id)
         if category:
             self.categories.remove(category)
             return True

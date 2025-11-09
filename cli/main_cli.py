@@ -1,3 +1,9 @@
+from src.repositories.user_repository import UserRepository
+from src.repositories.category_repository import CategoryRepository
+from src.repositories.account_repository import AccountRepository
+from src.repositories.budget_repository import BudgetRepository
+from src.repositories.transaction_repository import TransactionRepository
+
 from src.controllers.user_controller import UserController
 from src.controllers.category_controller import CategoryController
 from src.controllers.account_controller import AccountController
@@ -133,7 +139,7 @@ def budget_menu(budget_controller, logged_user):
             print("Opção inválida.")
 
 
-def transaction_menu(transaction_controller, logged_user):
+def transaction_menu(transaction_controller, logged_user, category_controller):
     while True:
         print("\n===== Menu de Transações =====")
         print("1. Criar transação")
@@ -144,6 +150,9 @@ def transaction_menu(transaction_controller, logged_user):
         op = input("Escolha: ")
 
         if op == "1":
+            for c in category_controller.list_categories(logged_user.id):
+                print(f"ID: {c.id}, Nome: {c.name}")
+
             account_id = int(input("ID da conta: "))
             category_id = int(input("ID da categoria: "))
             type_ = input("Tipo (income/expense): ").lower()
@@ -219,11 +228,21 @@ def transaction_menu(transaction_controller, logged_user):
 
 
 def main():
-    user_controller = UserController()
-    category_controller = CategoryController()
-    account_controller = AccountController()
-    budget_controller = BudgetController()
-    transaction_controller = TransactionController()
+
+    category_repo = CategoryRepository()
+    account_repo = AccountRepository()
+    budget_repo = BudgetRepository()
+    transaction_repo = TransactionRepository()
+    user_repo = UserRepository()  # se existir
+
+    # Cria controllers passando os repositórios compartilhados
+    user_controller = UserController(user_repo)
+    category_controller = CategoryController(category_repo)
+    account_controller = AccountController(account_repo)
+    budget_controller = BudgetController(budget_repo, category_repo, account_repo)
+    transaction_controller = TransactionController(
+        transaction_repo, account_repo, category_repo, budget_repo
+    )
 
     logged_user = None
 
@@ -262,7 +281,7 @@ def main():
         elif op == "3":
             budget_menu(budget_controller, logged_user)
         elif op == "4":
-            transaction_menu(transaction_controller, logged_user)
+            transaction_menu(transaction_controller, logged_user, category_controller)
         elif op == "5":
             logged_user = None
             print("Logout realizado.")

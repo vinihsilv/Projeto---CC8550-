@@ -32,12 +32,12 @@ class BudgetRepository:
     def delete(self, budget_id):
         self._budgets = [b for b in self._budgets if b.id != budget_id]
 
-    def find_by_category(self, category_id: int, user_id: int):
+    def list_by_category(self, category_id: int, user_id: int):
         # Retorna orçamento do usuário para aquela categoria, se existir
         return next(
             (
                 b
-                for b in self.budgets
+                for b in self._budgets
                 if b.category_id == category_id and b.user_id == user_id
             ),
             None,

@@ -38,4 +38,4 @@ class AccountRepository(AccountRepositoryInterface):
         self._accounts = [a for a in self._accounts if a.id != account_id]
 
     def get(self, account_id: int):
-        return next((a for a in self.accounts if a.id == account_id), None)
+        return next((a for a in self._accounts if a.id == account_id), None)

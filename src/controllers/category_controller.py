@@ -4,8 +4,7 @@ from src.repositories.category_repository import CategoryRepository
 
 
 class CategoryController:
-    def __init__(self):
-        repo = CategoryRepository()
+    def __init__(self, repo: CategoryRepository):
         self.service = CategoryService(repo)
 
     def create_category(self, name, user_id):

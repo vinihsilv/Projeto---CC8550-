@@ -1,11 +1,17 @@
 # src/controllers/budget_controller.py
+from src.repositories.account_repository import AccountRepository
 from src.services.budget_service import BudgetService
 from src.repositories.budget_repository import BudgetRepository
+from src.repositories.category_repository import CategoryRepository
 
 
 class BudgetController:
-    def __init__(self):
-        repo = BudgetRepository()
+    def __init__(
+        self,
+        repo: BudgetRepository,
+        account_repo: AccountRepository,
+        category_repo: CategoryRepository,
+    ):
         self.service = BudgetService(repo)
 
     def create_budget(self, user_id, category_id, year, month, limit_value):

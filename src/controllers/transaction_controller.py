@@ -6,12 +6,10 @@ from src.repositories.budget_repository import BudgetRepository
 
 
 class TransactionController:
-    def __init__(self):
-        tx_repo = TransactionRepository()
-        acc_repo = AccountRepository()
-        cat_repo = CategoryRepository()
-        bud_repo = BudgetRepository()
-        self.service = TransactionService(tx_repo, acc_repo, cat_repo, bud_repo)
+    def __init__(self, transaction_repo, account_repo, category_repo, budget_repo):
+        self.service = TransactionService(
+            transaction_repo, account_repo, category_repo, budget_repo
+        )
 
     def create_transaction(
         self, user_id, amount, type_, account_id, category_id, description=None

@@ -5,8 +5,7 @@ from src.repositories.user_repository import UserRepository
 
 
 class UserController:
-    def __init__(self):
-        repo = UserRepository()
+    def __init__(self, repo: UserRepository):
         self.service = UserService(repo)
 
     def create_user(self, name, email, password):
