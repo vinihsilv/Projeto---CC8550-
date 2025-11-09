@@ -20,6 +20,7 @@ class BudgetService:
             limit_value=limit_value,
         )
         self.repository.create(budget)
+        return budget
 
     def list_budgets(self, user_id: int) -> List[Budget]:
         return self.repository.list_by_user(user_id)

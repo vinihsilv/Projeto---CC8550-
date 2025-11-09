@@ -8,9 +8,12 @@ class CategoryService:
     def __init__(self, repository: CategoryRepositoryInterface):
         self.repository = repository
 
-    def create_category(self, name: str, user_id: int) -> None:
-        category = Category(id=None, name=name, user_id=user_id)
+    def create_category(self, name: str, user_id: int):
+        if not name or not name.strip():
+            raise ValueError("Nome da categoria é obrigatório.")
+        category = Category(name=name.strip(), user_id=user_id)
         self.repository.create(category)
+        return category
 
     def list_categories(self, user_id: int) -> List[Category]:
         return [c for c in self.repository.list_all() if c.user_id == user_id]
