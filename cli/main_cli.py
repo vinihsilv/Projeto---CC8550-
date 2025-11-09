@@ -252,7 +252,7 @@ def main():
         transaction_repo, account_repo, category_repo, budget_repo
     )
     account_controller = AccountController(account_repo)
-    budget_controller = BudgetController(budget_repo, category_repo)
+    budget_controller = BudgetController(budget_repo)
     user_controller = UserController(user_repo)
     category_controller = CategoryController(category_repo)
 
