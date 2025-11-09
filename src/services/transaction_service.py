@@ -1,3 +1,4 @@
+# src/services/transaction_service.py
 from datetime import datetime
 from typing import List
 from src.models.transaction import Transaction
@@ -20,10 +21,6 @@ class TransactionService:
         self.category_repository = category_repo
         self.budget_repository = budget_repo
 
-    def _next_transaction_id(self) -> int:
-        transactions = self.transaction_repository.list_all()
-        return 1 if not transactions else max(t.id for t in transactions) + 1
-
     def create_transaction(
         self,
         user_id: int,
@@ -37,7 +34,7 @@ class TransactionService:
         category = self.category_repository.get_category(category_id)
         if not category:
             raise ValueError(f"Categoria não encontrada: id={category_id}")
-        if int(category.user_id) != int(user_id):
+        if category.user_id != user_id:
             raise ValueError(
                 f"Categoria não pertence ao usuário. category.user_id={category.user_id}, user_id={user_id}"
             )
@@ -46,13 +43,13 @@ class TransactionService:
         account = self.account_repository.get(account_id)
         if not account:
             raise ValueError(f"Conta não encontrada: id={account_id}")
-        if int(account.user_id) != int(user_id):
+        if account.user_id != user_id:
             raise ValueError(
                 f"Conta não pertence ao usuário. account.user_id={account.user_id}, user_id={user_id}"
             )
 
         # --- Saldo atual da conta (não somar transações antigas) ---
-        current_balance = getattr(account, "balance", 0)
+        current_balance = account.balance or 0.0
 
         # --- Calcula saldo futuro e valida ---
         new_balance = current_balance + (amount if type_ == "income" else -amount)
@@ -79,7 +76,7 @@ class TransactionService:
 
         # --- Cria a transação ---
         transaction = Transaction(
-            id=self._next_transaction_id(),
+            id=None,
             amount=amount,
             type=type_,
             account_id=account_id,
@@ -115,7 +112,7 @@ class TransactionService:
         if type_ is not None:
             data["type"] = type_
         if category_id is not None:
-            category = self.category_repository.get(category_id)
+            category = self.category_repository.get_category(category_id)
             if not category or category.user_id != user_id:
                 raise ValueError("Categoria inválida.")
             data["category_id"] = category_id

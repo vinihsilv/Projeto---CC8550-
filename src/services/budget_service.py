@@ -10,26 +10,19 @@ class BudgetService:
 
     def create_budget(
         self, user_id: int, category_id: int, year: int, month: int, limit_value: float
-    ):
-        next_id = (
-            1
-            if not self.repository.list()
-            else max(b.id for b in self.repository.list()) + 1
+    ) -> None:
+        budget = Budget(
+            id=None,  # o banco vai gerar
+            user_id=user_id,
+            category_id=category_id,
+            year=year,
+            month=month,
+            limit_value=limit_value,
         )
-        self.repository.create(
-            Budget(
-                id=next_id,
-                user_id=user_id,
-                month=month,
-                category_id=category_id,
-                year=year,
-                limit_value=limit_value,
-            )
-        )
+        self.repository.create(budget)
 
-    def list_budgets(self, user_id: int):
-        # filtra somente budgets do usuário
-        return [b for b in self.repository.list() if b.user_id == user_id]
+    def list_budgets(self, user_id: int) -> List[Budget]:
+        return self.repository.list_by_user(user_id)
 
     def get_budget(self, budget_id: int) -> Budget:
         budget = self.repository.get(budget_id)

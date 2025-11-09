@@ -1,37 +1,37 @@
-# src/services/user_service.py
 from typing import List
 from src.models.user import User
 from src.repositories.user_repository import UserRepositoryInterface
+from sqlalchemy.exc import IntegrityError
 
 
 class UserService:
     def __init__(self, repository: UserRepositoryInterface):
         self.repository = repository
 
-    def create_user(self, name: str, email: str, password: str) -> None:
-        if any(u.email == email for u in self.repository.list()):
+    def create_user(self, name: str, email: str, password: str) -> User:
+        # Verifica se email já existe
+        existing_user = (
+            self.repository.session.query(User).filter_by(email=email).first()
+        )
+        if existing_user:
             raise ValueError("Email already exists.")
-        next_id = (
-            1
-            if not self.repository.list()
-            else max(u.id for u in self.repository.list()) + 1
-        )
-        self.repository.create(
-            User(id=next_id, name=name, email=email, password=password)
-        )
+
+        user = User(id=None, name=name, email=email, password=password)
+        self.repository.create(user)
+        return user
 
     def list_users(self) -> List[User]:
         return self.repository.list()
 
     def authenticate(self, email: str, password: str) -> User | None:
-        users = self.repository.list()
-        for u in users:
-            if u.email == email and u.password == password:
-                return u
-        return None
+        return (
+            self.repository.session.query(User)
+            .filter_by(email=email, password=password)
+            .first()
+        )
 
     def get_user(self, user_id: int) -> User:
-        user = self.repository.get(user_id)
+        user = self.repository.session.query(User).filter_by(id=user_id).first()
         if not user:
             raise ValueError("User not found.")
         return user

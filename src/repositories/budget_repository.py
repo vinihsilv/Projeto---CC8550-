@@ -35,6 +35,9 @@ class BudgetRepository(BudgetRepositoryInterface):
             self.session.delete(budget)
             self.session.commit()
 
+    def list_by_user(self, user_id: int) -> list[Budget]:
+        return self.session.query(Budget).filter_by(user_id=user_id).all()
+
     def list_by_category(self, category_id: int, user_id: int) -> Budget | None:
         return (
             self.session.query(Budget)
