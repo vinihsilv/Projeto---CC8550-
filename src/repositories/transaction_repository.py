@@ -25,8 +25,15 @@ class TransactionRepository(TransactionRepositoryInterface):
     def list_by_user(self, user_id: int):
         return [t for t in self.transactions if t.user_id == user_id]
 
-    def list_by_category(self, category_id: int):
-        return [t for t in self.transactions if t.category_id == category_id]
+    def list_by_account(self, account_id: int):
+        return [t for t in self.transactions if t.account_id == account_id]
+
+    def list_by_category(self, category_id: int, user_id: int):
+        return [
+            t
+            for t in self.transactions
+            if t.category_id == category_id and t.user_id == user_id
+        ]
 
     def update(self, transaction_id: int, data: dict):
         transaction = self.get_by_id(transaction_id)
@@ -36,6 +43,9 @@ class TransactionRepository(TransactionRepositoryInterface):
         transaction.amount = data.get("amount", transaction.amount)
         transaction.type = data.get("type", transaction.type)
         transaction.date = data.get("date", transaction.date)
+        transaction.account_id = data.get(
+            "account_id", getattr(transaction, "account_id", None)
+        )
         transaction.category_id = data.get("category_id", transaction.category_id)
         transaction.description = data.get("description", transaction.description)
         transaction.user_id = data.get("user_id", transaction.user_id)

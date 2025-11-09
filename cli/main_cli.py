@@ -144,12 +144,13 @@ def transaction_menu(transaction_controller, logged_user):
         op = input("Escolha: ")
 
         if op == "1":
+            account_id = int(input("ID da conta: "))
+            category_id = int(input("ID da categoria: "))
+            type_ = input("Tipo (income/expense): ").lower()
+            amount = float(input("Valor: "))
+            description = input("Descrição (opcional): ") or None
+
             try:
-                amount = float(input("Valor: "))
-                type_ = input("Tipo (income/expense): ").strip()
-                account_id = int(input("ID da conta: "))
-                category_id = int(input("ID da categoria: "))
-                description = input("Descrição (opcional): ").strip() or None
                 transaction_controller.create_transaction(
                     user_id=logged_user.id,
                     amount=amount,
@@ -161,40 +162,56 @@ def transaction_menu(transaction_controller, logged_user):
                 print("Transação criada com sucesso!")
             except ValueError as e:
                 print(f"Erro: {e}")
-        elif op == "2":
-            transactions = transaction_controller.list_transactions(
-                user_id=logged_user.id
-            )
-            for t in transactions:
-                print(
-                    f"ID: {t.id}, Valor: {t.amount}, Tipo: {t.type}, Categoria: {t.category_id}, Data: {t.date}, Descrição: {t.description}"
-                )
-        elif op == "3":
-            tid = int(input("ID da transação: "))
-            amount_input = input("Novo valor (vazio para não alterar): ")
-            type_input = input(
-                "Novo tipo (income/expense, vazio para não alterar): "
-            ).strip()
-            category_input = input("Nova categoria (ID, vazio para não alterar): ")
-            description_input = (
-                input("Nova descrição (vazio para não alterar): ").strip() or None
-            )
 
-            transaction_controller.update_transaction(
-                transaction_id=tid,
-                user_id=logged_user.id,
-                amount=float(amount_input) if amount_input else None,
-                type_=type_input if type_input else None,
-                category_id=int(category_input) if category_input else None,
-                description=description_input,
+        elif op == "2":
+            transactions = transaction_controller.list_transactions(logged_user.id)
+            if not transactions:
+                print("Nenhuma transação encontrada.")
+            else:
+                print("\nTransações listadas:")
+                for t in transactions:
+                    account_id = getattr(t, "account_id", "N/A")
+                    print(
+                        f"ID: {t.id}, Conta: {account_id}, Categoria: {t.category_id}, "
+                        f"Tipo: {t.type}, Valor: {t.amount}, Data: {t.date}, Desc: {t.description}"
+                    )
+
+        elif op == "3":
+            tx_id = int(input("ID da transação: "))
+            print("Preencha apenas os campos que deseja atualizar:")
+            new_amount = input("Novo valor (enter para manter): ")
+            new_type = (
+                input("Novo tipo (income/expense, enter para manter): ").lower() or None
             )
-            print("Transação atualizada.")
+            new_category = input("Novo ID da categoria (enter para manter): ")
+            new_desc = input("Nova descrição (enter para manter): ") or None
+
+            data = {}
+            if new_amount:
+                data["amount"] = float(new_amount)
+            if new_type:
+                data["type_"] = new_type
+            if new_category:
+                data["category_id"] = int(new_category)
+            if new_desc:
+                data["description"] = new_desc
+
+            try:
+                transaction_controller.update_transaction(
+                    transaction_id=tx_id, user_id=logged_user.id, **data
+                )
+                print("Transação atualizada com sucesso!")
+            except ValueError as e:
+                print(f"Erro: {e}")
+
         elif op == "4":
-            tid = int(input("ID da transação: "))
-            transaction_controller.delete_transaction(
-                transaction_id=tid, user_id=logged_user.id
-            )
-            print("Transação deletada.")
+            tx_id = int(input("ID da transação a deletar: "))
+            try:
+                transaction_controller.delete_transaction(tx_id, logged_user.id)
+                print("Transação deletada com sucesso!")
+            except ValueError as e:
+                print(f"Erro: {e}")
+
         elif op == "0":
             return
         else:

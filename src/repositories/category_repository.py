@@ -32,3 +32,6 @@ class CategoryRepository(CategoryRepositoryInterface):
             self.categories.remove(category)
             return True
         return False
+
+    def get(self, category_id: int):
+        return next((c for c in self.categories if c.id == category_id), None)

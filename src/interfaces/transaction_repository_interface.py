@@ -21,7 +21,11 @@ class TransactionRepositoryInterface(ABC):
         pass
 
     @abstractmethod
-    def list_by_category(self, category_id: int):
+    def list_by_account(self, account_id: int):
+        pass
+
+    @abstractmethod
+    def list_by_category(self, category_id: int, user_id: int):
         pass
 
     @abstractmethod

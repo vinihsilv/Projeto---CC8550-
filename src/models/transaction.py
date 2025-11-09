@@ -6,8 +6,9 @@ from datetime import datetime
 class Transaction:
     id: int | None
     amount: float
-    type: str
+    type: str  # "income" ou "expense"
     date: datetime
+    account_id: int
     category_id: int | None
     description: str | None
     user_id: int

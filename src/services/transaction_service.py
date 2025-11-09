@@ -8,8 +8,6 @@ from src.repositories.budget_repository import BudgetRepositoryInterface
 
 
 class TransactionService:
-    """Handles business rules for transactions, including validations and reports."""
-
     def __init__(
         self,
         transaction_repo: TransactionRepositoryInterface,
@@ -30,17 +28,15 @@ class TransactionService:
         self,
         user_id: int,
         amount: float,
-        type_: str,  # "income" ou "expense"
+        type_: str,
         account_id: int,
         category_id: int,
         description: str | None = None,
     ) -> None:
-        # Valida categoria
         category = self.category_repository.get(category_id)
         if not category or category.user_id != user_id:
             raise ValueError("Categoria inválida ou não pertence ao usuário.")
 
-        # Calcula saldo atual da conta
         account = self.account_repository.get(account_id)
         transactions = self.transaction_repository.list_by_account(account_id)
         current_balance = sum(
@@ -52,7 +48,6 @@ class TransactionService:
                 f"Saldo insuficiente: saldo atual {current_balance}, gasto solicitado {amount}"
             )
 
-        # Verifica orçamento da categoria
         if type_ == "expense":
             budget = self.budget_repository.find_by_category(category_id, user_id)
             if budget:
@@ -63,13 +58,11 @@ class TransactionService:
                     )
                     if t.type == "expense"
                 )
-                projected_total = total_spent + amount
-                if projected_total > budget.limit_value:
+                if total_spent + amount > budget.limit_value:
                     raise ValueError(
-                        f"Gasto ultrapassa orçamento: {projected_total} > {budget.limit_value}"
+                        f"Gasto ultrapassa orçamento: {total_spent + amount} > {budget.limit_value}"
                     )
 
-        # Cria a transação
         transaction = Transaction(
             id=self._next_transaction_id(),
             amount=amount,
@@ -79,6 +72,8 @@ class TransactionService:
             description=description,
             user_id=user_id,
         )
+        # Adiciona account_id dinamicamente no objeto
+        setattr(transaction, "account_id", account_id)
         self.transaction_repository.create(transaction)
 
     def list_transactions(self, user_id: int) -> List[Transaction]:
@@ -93,7 +88,7 @@ class TransactionService:
         category_id: int | None = None,
         description: str | None = None,
     ) -> None:
-        transaction = self.transaction_repository.get(transaction_id)
+        transaction = self.transaction_repository.get_by_id(transaction_id)
         if not transaction or transaction.user_id != user_id:
             raise ValueError("Transação não encontrada ou pertence a outro usuário.")
 
@@ -103,7 +98,6 @@ class TransactionService:
         if type_ is not None:
             data["type"] = type_
         if category_id is not None:
-            # Valida categoria
             category = self.category_repository.get(category_id)
             if not category or category.user_id != user_id:
                 raise ValueError("Categoria inválida.")
@@ -114,29 +108,7 @@ class TransactionService:
         self.transaction_repository.update(transaction_id, data)
 
     def delete_transaction(self, transaction_id: int, user_id: int) -> None:
-        transaction = self.transaction_repository.get(transaction_id)
+        transaction = self.transaction_repository.get_by_id(transaction_id)
         if not transaction or transaction.user_id != user_id:
             raise ValueError("Transação não encontrada ou pertence a outro usuário.")
         self.transaction_repository.delete(transaction_id)
-
-    def generate_monthly_report(self, user_id: int, year: int, month: int) -> dict:
-        transactions = self.transaction_repository.list_by_user_and_month(
-            user_id, year, month
-        )
-        total_income = sum(t.amount for t in transactions if t.type == "income")
-        total_expense = sum(t.amount for t in transactions if t.type == "expense")
-
-        expenses_by_category = {}
-        for t in transactions:
-            if t.type == "expense":
-                expenses_by_category[t.category_id] = (
-                    expenses_by_category.get(t.category_id, 0) + t.amount
-                )
-
-        report = {
-            "total_income": total_income,
-            "total_expense": total_expense,
-            "net_balance": total_income - total_expense,
-            "expenses_by_category": expenses_by_category,
-        }
-        return report

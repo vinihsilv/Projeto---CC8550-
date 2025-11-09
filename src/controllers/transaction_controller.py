@@ -1,4 +1,3 @@
-# src/controllers/transaction_controller.py
 from src.services.transaction_service import TransactionService
 from src.repositories.transaction_repository import TransactionRepository
 from src.repositories.account_repository import AccountRepository
@@ -27,8 +26,18 @@ class TransactionController:
     def get_transaction(self, transaction_id):
         return self.service.get_transaction(transaction_id)
 
-    def update_transaction(self, transaction_id, data):
-        self.service.update_transaction(transaction_id, data)
+    def update_transaction(
+        self,
+        transaction_id,
+        user_id,
+        amount=None,
+        type_=None,
+        category_id=None,
+        description=None,
+    ):
+        self.service.update_transaction(
+            transaction_id, user_id, amount, type_, category_id, description
+        )
 
-    def delete_transaction(self, transaction_id):
-        self.service.delete_transaction(transaction_id)
+    def delete_transaction(self, transaction_id, user_id):
+        self.service.delete_transaction(transaction_id, user_id)
