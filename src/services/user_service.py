@@ -1,43 +1,45 @@
+# src/services/user_service.py
+from typing import List
 from src.models.user import User
-from src.repositories.user_repository import UserRepository
+from src.repositories.user_repository import UserRepositoryInterface
 
 
 class UserService:
-    """Handles business rules for user management."""
-
-    def __init__(self):
-        self.repository = UserRepository()
+    def __init__(self, repository: UserRepositoryInterface):
+        self.repository = repository
 
     def create_user(self, name: str, email: str, password: str) -> None:
-        existing_users = self.repository.list()
-        if any(u.email == email for u in existing_users):
+        if any(u.email == email for u in self.repository.list()):
             raise ValueError("Email already exists.")
+        next_id = (
+            1
+            if not self.repository.list()
+            else max(u.id for u in self.repository.list()) + 1
+        )
+        self.repository.create(
+            User(id=next_id, name=name, email=email, password=password)
+        )
 
-        next_id = 1 if not existing_users else max(u.id for u in existing_users) + 1
-        user = User(id=next_id, name=name, email=email, password=password)
-        self.repository.create(user)
-
-    def list_users(self):
+    def list_users(self) -> List[User]:
         return self.repository.list()
 
-    def update_user(self, user_id: int, data: dict) -> None:
-        users = self.repository.list()
-        if not any(u.id == user_id for u in users):
-            raise ValueError("User not found.")
-
-        self.repository.update(user_id, data)
-
-    def delete_user(self, user_id: int) -> None:
-        users = self.repository.list()
-        if not any(u.id == user_id for u in users):
-            raise ValueError("User not found.")
-
-        self.repository.delete(user_id)
-
     def authenticate(self, email: str, password: str) -> User | None:
-        """Returns a user if credentials match, otherwise None."""
         users = self.repository.list()
         for u in users:
             if u.email == email and u.password == password:
                 return u
         return None
+
+    def get_user(self, user_id: int) -> User:
+        user = self.repository.get(user_id)
+        if not user:
+            raise ValueError("User not found.")
+        return user
+
+    def update_user(self, user_id: int, data: dict) -> None:
+        user = self.get_user(user_id)
+        self.repository.update(user_id, data)
+
+    def delete_user(self, user_id: int) -> None:
+        user = self.get_user(user_id)
+        self.repository.delete(user_id)
