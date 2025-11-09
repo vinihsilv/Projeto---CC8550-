@@ -90,6 +90,14 @@ class TransactionService:
         # --- Atualiza saldo da conta ---
         self.account_repository.update(account_id, {"balance": new_balance})
 
+    # no TransactionService
+
+    def get_transaction(self, transaction_id: int) -> Transaction:
+        transaction = self.transaction_repository.get_by_id(transaction_id)
+        if not transaction:
+            raise ValueError("Transaction not found")
+        return transaction
+
     def list_transactions(self, user_id: int) -> List[Transaction]:
         return self.transaction_repository.list_by_user(user_id)
 

@@ -3,12 +3,22 @@ from src.repositories.transaction_repository import TransactionRepository
 from src.repositories.account_repository import AccountRepository
 from src.repositories.category_repository import CategoryRepository
 from src.repositories.budget_repository import BudgetRepository
+from utils.database import SessionLocal  # nossa factory de sessão SQLAlchemy
 
 
 class TransactionController:
-    def __init__(self, transaction_repo, account_repo, category_repo, budget_repo):
+    def __init__(self):
+        self.session = SessionLocal()
+        self.transaction_repo = TransactionRepository(self.session)
+        self.account_repo = AccountRepository(self.session)
+        self.category_repo = CategoryRepository(self.session)
+        self.budget_repo = BudgetRepository(self.session)
+
         self.service = TransactionService(
-            transaction_repo, account_repo, category_repo, budget_repo
+            self.transaction_repo,
+            self.account_repo,
+            self.category_repo,
+            self.budget_repo,
         )
 
     def create_transaction(

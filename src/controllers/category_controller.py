@@ -8,7 +8,7 @@ class CategoryController:
         self.service = CategoryService(repo)
 
     def create_category(self, name, user_id):
-        return self.service.create_category(name, user_id)
+        return self.service.create_category(name, user_id)  # retorna a Category criada
 
     def list_categories(self, user_id):
         return self.service.list_categories(user_id)
