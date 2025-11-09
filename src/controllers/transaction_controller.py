@@ -1,35 +1,34 @@
+# src/controllers/transaction_controller.py
 from src.services.transaction_service import TransactionService
+from src.repositories.transaction_repository import TransactionRepository
+from src.repositories.account_repository import AccountRepository
+from src.repositories.category_repository import CategoryRepository
+from src.repositories.budget_repository import BudgetRepository
 
 
 class TransactionController:
     def __init__(self):
-        self.service = TransactionService()
+        tx_repo = TransactionRepository()
+        acc_repo = AccountRepository()
+        cat_repo = CategoryRepository()
+        bud_repo = BudgetRepository()
+        self.service = TransactionService(tx_repo, acc_repo, cat_repo, bud_repo)
 
-    def create_transaction(self, amount, description, category_id):
-        transaction = self.service.create_transaction(amount, description, category_id)
-        print(f"Transação criada: {transaction.description} - R$ {transaction.amount}")
+    def create_transaction(
+        self, user_id, amount, type_, account_id, category_id, description=None
+    ):
+        self.service.create_transaction(
+            user_id, amount, type_, account_id, category_id, description
+        )
 
-    def list_transactions(self):
-        transactions = self.service.list_transactions()
-        print("\n===== Transações =====")
-        if not transactions:
-            print("Nenhuma transação cadastrada.")
-            return
-        for t in transactions:
-            print(
-                f"[{t.id}] R$ {t.amount} | {t.description} | Categoria: {t.category_id}"
-            )
+    def list_transactions(self, user_id):
+        return self.service.list_transactions(user_id)
 
-    def update_transaction(self, tid, amount, description, category_id):
-        updated = self.service.update_transaction(tid, amount, description, category_id)
-        if updated:
-            print("Transação atualizada.")
-        else:
-            print("Transação não encontrada.")
+    def get_transaction(self, transaction_id):
+        return self.service.get_transaction(transaction_id)
 
-    def delete_transaction(self, tid):
-        deleted = self.service.delete_transaction(tid)
-        if deleted:
-            print("Transação removida.")
-        else:
-            print("Transação não encontrada.")
+    def update_transaction(self, transaction_id, data):
+        self.service.update_transaction(transaction_id, data)
+
+    def delete_transaction(self, transaction_id):
+        self.service.delete_transaction(transaction_id)

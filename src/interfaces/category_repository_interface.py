@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from src.models.category import Category
 
 
-class ICategoryRepository(ABC):
+class CategoryRepositoryInterface(ABC):
 
     @abstractmethod
     def create(self, category: Category):
@@ -17,7 +17,7 @@ class ICategoryRepository(ABC):
         pass
 
     @abstractmethod
-    def update(self, category_id: int, name: str, description: str | None):
+    def update(self, category_id: int, name: str):
         pass
 
     @abstractmethod

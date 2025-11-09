@@ -1,8 +1,10 @@
-from src.interfaces.transaction_repository_interface import ITransactionRepository
+from src.interfaces.transaction_repository_interface import (
+    TransactionRepositoryInterface,
+)
 from src.models.transaction import Transaction
 
 
-class TransactionRepository(ITransactionRepository):
+class TransactionRepository(TransactionRepositoryInterface):
 
     def __init__(self):
         self.transactions: list[Transaction] = []

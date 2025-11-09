@@ -1,9 +1,7 @@
 from datetime import datetime
 from typing import List
 from src.models.transaction import Transaction
-from src.repositories.transaction_repository import (
-    TransactionRepositoryInterface,
-)
+from src.repositories.transaction_repository import TransactionRepositoryInterface
 from src.repositories.account_repository import AccountRepositoryInterface
 from src.repositories.category_repository import CategoryRepositoryInterface
 from src.repositories.budget_repository import BudgetRepositoryInterface
@@ -37,7 +35,7 @@ class TransactionService:
         category_id: int,
         description: str | None = None,
     ) -> None:
-        # Verifica se a categoria existe e pertence ao usuário
+        # Valida categoria
         category = self.category_repository.get(category_id)
         if not category or category.user_id != user_id:
             raise ValueError("Categoria inválida ou não pertence ao usuário.")
@@ -105,7 +103,7 @@ class TransactionService:
         if type_ is not None:
             data["type"] = type_
         if category_id is not None:
-            # Verifica categoria
+            # Valida categoria
             category = self.category_repository.get(category_id)
             if not category or category.user_id != user_id:
                 raise ValueError("Categoria inválida.")

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from src.models.transaction import Transaction
 
 
-class ITransactionRepository(ABC):
+class TransactionRepositoryInterface(ABC):
 
     @abstractmethod
     def create(self, transaction: Transaction):
