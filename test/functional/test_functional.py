@@ -139,7 +139,6 @@ def test_func_excluir_categoria_com_transacoes(services, user, category, account
     )
     services["category"].delete_category(category.id)
 
-    # categoria não deve existir mais
     with pytest.raises(ValueError):
         services["category"].get_category(category.id)
 
@@ -164,7 +163,6 @@ def test_func_fluxo_completo_orcamento(services, user, account):
     # 2. Orçamento
     budget = services["budget"].create_budget(user.id, cat.id, 2025, 6, 500)
 
-    # 3. Transação (garante saldo)
     services["transaction"].account_repository.update(account.id, {"balance": 600.0})
     services["transaction"].create_transaction(
         user_id=user.id,
@@ -175,7 +173,6 @@ def test_func_fluxo_completo_orcamento(services, user, account):
         description="Cinema",
     )
 
-    # 4. Verificar total (soma via service)
     txs = services["transaction"].list_transactions(user.id)
     total = sum(
         t.amount if t.type == "income" else -t.amount
