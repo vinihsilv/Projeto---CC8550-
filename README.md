@@ -2,10 +2,10 @@
 
 Camadas: CLI → Controllers → Services → Repositories → Database (SQLAlchemy). Banco SQLite por padrão.
 
-Luan Petroucic Moreno – RA: 22.122.076‑7
-Vinicius Henrique Silva – RA: 22.122.063‑5
-Cauê Jacomini Zanatti – RA: 22.122.024‑7
-Giulliano Mazzaro Camargo – RA: 22.121.024‑8
+- Luan Petroucic Moreno – RA: 22.122.076‑7
+- Vinicius Henrique Silva – RA: 22.122.063‑5
+- Cauê Jacomini Zanatti – RA: 22.122.024‑7
+- Giulliano Mazzaro Camargo – RA: 22.121.024‑8
 
 ## Sumário
 - Visão geral
