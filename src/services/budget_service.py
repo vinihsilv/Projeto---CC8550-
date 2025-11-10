@@ -10,9 +10,20 @@ class BudgetService:
 
     def create_budget(
         self, user_id: int, category_id: int, year: int, month: int, limit_value: float
-    ) -> None:
+    ) -> Budget:
+        if month < 1 or month > 12:
+            raise ValueError("Mês inválido (1-12).")
+
+        if limit_value is None or float(limit_value) <= 0:
+            raise ValueError("Limite deve ser positivo.")
+
+        existing = self.repository.list_by_user(user_id)
+        # verifica duplicidade por ano/mês para o mesmo usuário
+        if any(b.year == year and b.month == month for b in existing):
+            raise ValueError("Já existe orçamento para este usuário neste mês.")
+
         budget = Budget(
-            id=None,  # o banco vai gerar
+            id=None,
             user_id=user_id,
             category_id=category_id,
             year=year,
