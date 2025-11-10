@@ -43,3 +43,11 @@ class CategoryRepository(CategoryRepositoryInterface):
     # Mantido para compatibilidade
     def get(self, category_id: int) -> Category | None:
         return self.get_category(category_id)
+
+    def list_by_user(self, user_id: int):
+        return (
+            self.session.query(Category)
+            .filter(Category.user_id == user_id)
+            .order_by(Category.id.asc())
+            .all()
+        )

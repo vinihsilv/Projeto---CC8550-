@@ -32,6 +32,14 @@ class AccountRepository(AccountRepositoryInterface):
                 raise ValueError(f"Atributo '{key}' não existe na Account")
         self.session.commit()
 
+    def list_by_user(self, user_id: int):
+        return (
+            self.session.query(Account)
+            .filter(Account.user_id == user_id)
+            .order_by(Account.id.asc())
+            .all()
+        )
+
     def delete(self, account_id: int) -> None:
         account = self.get(account_id)
         if account:
