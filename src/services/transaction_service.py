@@ -1,6 +1,6 @@
 # src/services/transaction_service.py
 from datetime import datetime
-from typing import List
+from typing import List, Dict, Any
 from src.models.transaction import Transaction
 from src.repositories.transaction_repository import TransactionRepositoryInterface
 from src.repositories.account_repository import AccountRepositoryInterface
@@ -134,3 +134,248 @@ class TransactionService:
         if not transaction or transaction.user_id != user_id:
             raise ValueError("Transação não encontrada ou pertence a outro usuário.")
         self.transaction_repository.delete(transaction_id)
+
+    def search_transactions_with_filters(
+        self,
+        user_id: int,
+        transaction_type: str | None = None,
+        min_amount: float | None = None,
+        max_amount: float | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
+        category_id: int | None = None,
+        account_id: int | None = None,
+        description_contains: str | None = None,
+        sort_by: str = "date",
+        sort_order: str = "desc",
+    ) -> List[Transaction]:
+        """
+        Busca transações com filtros avançados e ordenação.
+
+        Args:
+            user_id: ID do usuário
+            transaction_type: Tipo da transação ("income" ou "expense")
+            min_amount: Valor mínimo
+            max_amount: Valor máximo
+            start_date: Data de início
+            end_date: Data final
+            category_id: ID da categoria
+            account_id: ID da conta
+            description_contains: Texto contido na descrição
+            sort_by: Campo para ordenação ("date", "amount", "description")
+            sort_order: Ordem ("asc" ou "desc")
+
+        Returns:
+            Lista de transações filtradas e ordenadas
+        """
+        # Validações de entrada
+        if sort_by not in ["date", "amount", "description", "type"]:
+            raise ValueError(
+                "Campo de ordenação inválido. Use: date, amount, description, type"
+            )
+
+        if sort_order not in ["asc", "desc"]:
+            raise ValueError("Ordem de classificação inválida. Use: asc ou desc")
+
+        if min_amount is not None and min_amount < 0:
+            raise ValueError("Valor mínimo deve ser positivo")
+
+        if max_amount is not None and max_amount < 0:
+            raise ValueError("Valor máximo deve ser positivo")
+
+        if (
+            min_amount is not None
+            and max_amount is not None
+            and min_amount > max_amount
+        ):
+            raise ValueError("Valor mínimo não pode ser maior que o valor máximo")
+
+        if start_date is not None and end_date is not None and start_date > end_date:
+            raise ValueError("Data de início não pode ser posterior à data final")
+
+        # Buscar todas as transações do usuário
+        all_transactions = self.transaction_repository.list_by_user(user_id)
+
+        # Aplicar filtros
+        filtered_transactions = []
+        for transaction in all_transactions:
+            # Filtro por tipo
+            if transaction_type and transaction.type != transaction_type:
+                continue
+
+            # Filtro por valor mínimo
+            if min_amount is not None and transaction.amount < min_amount:
+                continue
+
+            # Filtro por valor máximo
+            if max_amount is not None and transaction.amount > max_amount:
+                continue
+
+            # Filtro por data de início
+            if start_date and transaction.date < start_date:
+                continue
+
+            # Filtro por data final
+            if end_date and transaction.date > end_date:
+                continue
+
+            # Filtro por categoria
+            if category_id and transaction.category_id != category_id:
+                continue
+
+            # Filtro por conta
+            if account_id and transaction.account_id != account_id:
+                continue
+
+            # Filtro por descrição
+            if description_contains and (
+                not transaction.description
+                or description_contains.lower() not in transaction.description.lower()
+            ):
+                continue
+
+            filtered_transactions.append(transaction)
+
+        # Aplicar ordenação
+        reverse_order = sort_order == "desc"
+
+        if sort_by == "date":
+            filtered_transactions.sort(key=lambda t: t.date, reverse=reverse_order)
+        elif sort_by == "amount":
+            filtered_transactions.sort(key=lambda t: t.amount, reverse=reverse_order)
+        elif sort_by == "description":
+            filtered_transactions.sort(
+                key=lambda t: t.description or "", reverse=reverse_order
+            )
+        elif sort_by == "type":
+            filtered_transactions.sort(key=lambda t: t.type, reverse=reverse_order)
+
+        return filtered_transactions
+
+    def get_transactions_summary(
+        self,
+        user_id: int,
+        group_by: str = "category",
+        period_start: datetime | None = None,
+        period_end: datetime | None = None,
+        transaction_type: str | None = None,
+        sort_by: str = "total_amount",
+        sort_order: str = "desc",
+    ) -> List[dict]:
+        """
+        Obtém resumo de transações agrupadas com totalizadores.
+
+        Args:
+            user_id: ID do usuário
+            group_by: Agrupamento ("category", "account", "type", "month")
+            period_start: Data de início do período
+            period_end: Data final do período
+            transaction_type: Filtro por tipo ("income" ou "expense")
+            sort_by: Campo para ordenação ("total_amount", "count", "avg_amount")
+            sort_order: Ordem ("asc" ou "desc")
+
+        Returns:
+            Lista de dicionários com resumo agrupado
+        """
+        # Validações
+        if group_by not in ["category", "account", "type", "month"]:
+            raise ValueError(
+                "Agrupamento inválido. Use: category, account, type, month"
+            )
+
+        if sort_by not in ["total_amount", "count", "avg_amount"]:
+            raise ValueError(
+                "Campo de ordenação inválido. Use: total_amount, count, avg_amount"
+            )
+
+        if sort_order not in ["asc", "desc"]:
+            raise ValueError("Ordem inválida. Use: asc ou desc")
+
+        # Buscar transações do período
+        transactions = self.transaction_repository.list_by_user(user_id)
+
+        # Filtrar por período e tipo
+        filtered_transactions = []
+        for transaction in transactions:
+            # Filtro por período
+            if period_start and transaction.date < period_start:
+                continue
+            if period_end and transaction.date > period_end:
+                continue
+
+            # Filtro por tipo
+            if transaction_type and transaction.type != transaction_type:
+                continue
+
+            filtered_transactions.append(transaction)
+
+        # Agrupar transações
+        groups = {}
+
+        for transaction in filtered_transactions:
+            # Determinar chave do grupo
+            if group_by == "category":
+                key = transaction.category_id
+                # Buscar nome da categoria
+                category = self.category_repository.get_category(
+                    transaction.category_id
+                )
+                name = (
+                    category.name
+                    if category
+                    else f"Categoria {transaction.category_id}"
+                )
+            elif group_by == "account":
+                key = transaction.account_id
+                # Buscar nome da conta
+                account = self.account_repository.get(transaction.account_id)
+                name = account.name if account else f"Conta {transaction.account_id}"
+            elif group_by == "type":
+                key = transaction.type
+                name = "Receita" if transaction.type == "income" else "Despesa"
+            elif group_by == "month":
+                key = f"{transaction.date.year}-{transaction.date.month:02d}"
+                name = f"{transaction.date.strftime('%B')} {transaction.date.year}"
+
+            # Inicializar grupo se necessário
+            if key not in groups:
+                groups[key] = {
+                    "group_key": key,
+                    "group_name": name,
+                    "transactions": [],
+                    "total_amount": 0.0,
+                    "count": 0,
+                }
+
+            # Adicionar transação ao grupo
+            groups[key]["transactions"].append(transaction)
+            groups[key]["total_amount"] += transaction.amount
+            groups[key]["count"] += 1
+
+        # Calcular médias e preparar resultado
+        result = []
+        for group_data in groups.values():
+            summary = {
+                "group_key": group_data["group_key"],
+                "group_name": group_data["group_name"],
+                "total_amount": round(group_data["total_amount"], 2),
+                "count": group_data["count"],
+                "avg_amount": (
+                    round(group_data["total_amount"] / group_data["count"], 2)
+                    if group_data["count"] > 0
+                    else 0.0
+                ),
+            }
+            result.append(summary)
+
+        # Ordenar resultado
+        reverse_order = sort_order == "desc"
+
+        if sort_by == "total_amount":
+            result.sort(key=lambda x: x["total_amount"], reverse=reverse_order)
+        elif sort_by == "count":
+            result.sort(key=lambda x: x["count"], reverse=reverse_order)
+        elif sort_by == "avg_amount":
+            result.sort(key=lambda x: x["avg_amount"], reverse=reverse_order)
+
+        return result

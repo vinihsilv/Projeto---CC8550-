@@ -161,13 +161,17 @@ def budget_menu(budget_controller, logged_user):
             print(f"Erro: {e}")
 
 
-def transaction_menu(transaction_controller, logged_user, category_controller):
+def transaction_menu(
+    transaction_controller, logged_user, category_controller, account_controller
+):
     while True:
         print("\n===== Menu de Transações =====")
         print("1. Criar transação")
         print("2. Listar transações")
         print("3. Atualizar transação")
         print("4. Deletar transação")
+        print("5. Consultas Avançadas")
+        print("6. Relatório de Resumo")
         print("0. Voltar")
         op = input("Escolha: ")
 
@@ -232,12 +236,274 @@ def transaction_menu(transaction_controller, logged_user, category_controller):
                 transaction_controller.delete_transaction(tx_id, logged_user.id)
                 print("Transação deletada com sucesso!")
 
+            elif op == "5":
+                advanced_search_menu(
+                    transaction_controller,
+                    logged_user,
+                    category_controller,
+                    account_controller,
+                )
+
+            elif op == "6":
+                summary_report_menu(
+                    transaction_controller,
+                    logged_user,
+                    category_controller,
+                    account_controller,
+                )
+
             elif op == "0":
                 return
             else:
                 print("Opção inválida.")
         except ValueError as e:
             print(f"Erro: {e}")
+
+
+def advanced_search_menu(
+    transaction_controller, logged_user, category_controller, account_controller
+):
+    """Menu para consultas avançadas de transações com filtros e ordenação."""
+    from datetime import datetime
+
+    while True:
+        print("\n===== Consultas Avançadas =====")
+        print("Filtros disponíveis:")
+        print("1. Executar busca com filtros")
+        print("0. Voltar")
+        op = input("Escolha: ")
+
+        if op == "1":
+            try:
+                print("\n--- Configurar Filtros (deixe em branco para não filtrar) ---")
+
+                # Filtro por tipo
+                transaction_type = (
+                    input("Tipo (income/expense): ").strip().lower() or None
+                )
+                if transaction_type and transaction_type not in ["income", "expense"]:
+                    transaction_type = None
+
+                # Filtro por valores
+                min_amount_input = input("Valor mínimo: ").strip()
+                min_amount = float(min_amount_input) if min_amount_input else None
+
+                max_amount_input = input("Valor máximo: ").strip()
+                max_amount = float(max_amount_input) if max_amount_input else None
+
+                # Filtro por datas
+                print("Data de início (formato: YYYY-MM-DD):")
+                start_date_input = input("Data início: ").strip()
+                start_date = None
+                if start_date_input:
+                    try:
+                        start_date = datetime.strptime(start_date_input, "%Y-%m-%d")
+                    except ValueError:
+                        print(
+                            "Formato de data inválido, ignorando filtro de data inicial"
+                        )
+
+                print("Data final (formato: YYYY-MM-DD):")
+                end_date_input = input("Data final: ").strip()
+                end_date = None
+                if end_date_input:
+                    try:
+                        end_date = datetime.strptime(end_date_input, "%Y-%m-%d")
+                    except ValueError:
+                        print(
+                            "Formato de data inválido, ignorando filtro de data final"
+                        )
+
+                # Filtro por categoria
+                print("\n--- Categorias disponíveis ---")
+                categories = category_controller.list_categories(logged_user.id)
+                for c in categories:
+                    print(f"ID: {c.id}, Nome: {c.name}")
+
+                category_id_input = input("ID da categoria: ").strip()
+                category_id = int(category_id_input) if category_id_input else None
+
+                # Filtro por conta
+                print("\n--- Contas disponíveis ---")
+                accounts = account_controller.list_accounts(logged_user.id)
+                for a in accounts:
+                    print(f"ID: {a.id}, Nome: {a.name}")
+
+                account_id_input = input("ID da conta: ").strip()
+                account_id = int(account_id_input) if account_id_input else None
+
+                # Filtro por descrição
+                description_contains = input("Texto na descrição: ").strip() or None
+
+                # Configurar ordenação
+                print("\n--- Ordenação ---")
+                print("Campos: date, amount, description, type")
+                sort_by = input("Ordenar por (padrão: date): ").strip() or "date"
+
+                print("Ordem: asc (crescente), desc (decrescente)")
+                sort_order = input("Ordem (padrão: desc): ").strip() or "desc"
+
+                # Executar busca
+                results = transaction_controller.search_transactions_with_filters(
+                    user_id=logged_user.id,
+                    transaction_type=transaction_type,
+                    min_amount=min_amount,
+                    max_amount=max_amount,
+                    start_date=start_date,
+                    end_date=end_date,
+                    category_id=category_id,
+                    account_id=account_id,
+                    description_contains=description_contains,
+                    sort_by=sort_by,
+                    sort_order=sort_order,
+                )
+
+                # Exibir resultados
+                print(f"\n--- Resultados ({len(results)} transações encontradas) ---")
+                if not results:
+                    print("Nenhuma transação encontrada com os filtros especificados.")
+                else:
+                    for t in results:
+                        print(
+                            f"ID: {t.id} | Valor: R$ {t.amount:.2f} | Tipo: {t.type} | "
+                            f"Data: {t.date.strftime('%d/%m/%Y')} | Conta: {t.account_id} | "
+                            f"Categoria: {t.category_id} | Descrição: {t.description or 'N/A'}"
+                        )
+
+                input("\nPressione Enter para continuar...")
+
+            except ValueError as e:
+                print(f"Erro: {e}")
+                input("Pressione Enter para continuar...")
+
+        elif op == "0":
+            return
+        else:
+            print("Opção inválida.")
+
+
+def summary_report_menu(
+    transaction_controller, logged_user, category_controller, account_controller
+):
+    """Menu para relatórios de resumo agrupados."""
+    from datetime import datetime
+
+    while True:
+        print("\n===== Relatório de Resumo =====")
+        print("1. Resumo por Categoria")
+        print("2. Resumo por Conta")
+        print("3. Resumo por Tipo")
+        print("4. Resumo por Mês")
+        print("0. Voltar")
+        op = input("Escolha: ")
+
+        if op in ["1", "2", "3", "4"]:
+            try:
+                # Mapear opção para grupo
+                group_mapping = {
+                    "1": "category",
+                    "2": "account",
+                    "3": "type",
+                    "4": "month",
+                }
+                group_by = group_mapping[op]
+
+                print(f"\n--- Configurar Relatório por {group_by.title()} ---")
+
+                # Filtro de período
+                print("Período (deixe em branco para todos os registros):")
+                start_date_input = input("Data início (YYYY-MM-DD): ").strip()
+                period_start = None
+                if start_date_input:
+                    try:
+                        period_start = datetime.strptime(start_date_input, "%Y-%m-%d")
+                    except ValueError:
+                        print(
+                            "Formato de data inválido, considerando todos os registros"
+                        )
+
+                end_date_input = input("Data final (YYYY-MM-DD): ").strip()
+                period_end = None
+                if end_date_input:
+                    try:
+                        period_end = datetime.strptime(end_date_input, "%Y-%m-%d")
+                    except ValueError:
+                        print(
+                            "Formato de data inválido, considerando todos os registros"
+                        )
+
+                # Filtro por tipo de transação
+                transaction_type = (
+                    input("Filtrar por tipo (income/expense, ou vazio para ambos): ")
+                    .strip()
+                    .lower()
+                    or None
+                )
+                if transaction_type and transaction_type not in ["income", "expense"]:
+                    transaction_type = None
+
+                # Ordenação
+                print("\nOrdenar por: total_amount, count, avg_amount")
+                sort_by = (
+                    input("Ordenar por (padrão: total_amount): ").strip()
+                    or "total_amount"
+                )
+
+                sort_order = input("Ordem asc/desc (padrão: desc): ").strip() or "desc"
+
+                # Executar relatório
+                results = transaction_controller.get_transactions_summary(
+                    user_id=logged_user.id,
+                    group_by=group_by,
+                    period_start=period_start,
+                    period_end=period_end,
+                    transaction_type=transaction_type,
+                    sort_by=sort_by,
+                    sort_order=sort_order,
+                )
+
+                # Exibir resultados
+                print(f"\n--- Relatório por {group_by.title()} ---")
+                if not results:
+                    print("Nenhum dado encontrado para o período especificado.")
+                else:
+                    print(f"{'Nome':<20} | {'Total':<12} | {'Qtd':<8} | {'Média':<12}")
+                    print("-" * 60)
+
+                    total_geral = 0
+                    count_geral = 0
+
+                    for item in results:
+                        name = item["group_name"][
+                            :18
+                        ]  # Limitar nome para caber na coluna
+                        total = item["total_amount"]
+                        count = item["count"]
+                        avg = item["avg_amount"]
+
+                        print(
+                            f"{name:<20} | R$ {total:>8.2f} | {count:>6} | R$ {avg:>8.2f}"
+                        )
+
+                        total_geral += total
+                        count_geral += count
+
+                    print("-" * 60)
+                    avg_geral = total_geral / count_geral if count_geral > 0 else 0
+                    print(
+                        f"{'TOTAL GERAL':<20} | R$ {total_geral:>8.2f} | {count_geral:>6} | R$ {avg_geral:>8.2f}"
+                    )
+
+                input("\nPressione Enter para continuar...")
+
+            except ValueError as e:
+                print(f"Erro: {e}")
+                input("Pressione Enter para continuar...")
+
+        elif op == "0":
+            return
+        else:
+            print("Opção inválida.")
 
 
 def main():
@@ -296,7 +562,12 @@ def main():
         elif op == "3":
             budget_menu(budget_controller, logged_user)
         elif op == "4":
-            transaction_menu(transaction_controller, logged_user, category_controller)
+            transaction_menu(
+                transaction_controller,
+                logged_user,
+                category_controller,
+                account_controller,
+            )
         elif op == "5":
             logged_user = None
             print("Logout realizado.")

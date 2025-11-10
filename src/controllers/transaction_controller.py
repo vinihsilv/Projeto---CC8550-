@@ -40,3 +40,53 @@ class TransactionController:
 
     def delete_transaction(self, transaction_id, user_id):
         self.service.delete_transaction(transaction_id, user_id)
+
+    def search_transactions_with_filters(
+        self,
+        user_id,
+        transaction_type=None,
+        min_amount=None,
+        max_amount=None,
+        start_date=None,
+        end_date=None,
+        category_id=None,
+        account_id=None,
+        description_contains=None,
+        sort_by="date",
+        sort_order="desc",
+    ):
+        """Busca transações com filtros avançados."""
+        return self.service.search_transactions_with_filters(
+            user_id=user_id,
+            transaction_type=transaction_type,
+            min_amount=min_amount,
+            max_amount=max_amount,
+            start_date=start_date,
+            end_date=end_date,
+            category_id=category_id,
+            account_id=account_id,
+            description_contains=description_contains,
+            sort_by=sort_by,
+            sort_order=sort_order,
+        )
+
+    def get_transactions_summary(
+        self,
+        user_id,
+        group_by="category",
+        period_start=None,
+        period_end=None,
+        transaction_type=None,
+        sort_by="total_amount",
+        sort_order="desc",
+    ):
+        """Obtém resumo de transações agrupadas."""
+        return self.service.get_transactions_summary(
+            user_id=user_id,
+            group_by=group_by,
+            period_start=period_start,
+            period_end=period_end,
+            transaction_type=transaction_type,
+            sort_by=sort_by,
+            sort_order=sort_order,
+        )
