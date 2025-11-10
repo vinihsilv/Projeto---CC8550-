@@ -1,0 +1,54 @@
+---
+title: ER Diagram - Projeto CC8550
+---
+classDiagram
+    direction LR
+
+    class User {
+      +int id
+      +string name
+      +string email
+      +string password
+    }
+
+    class Account {
+      +int id
+      +string name
+      +float balance
+      +int user_id
+    }
+
+    class Category {
+      +int id
+      +string name
+      +int user_id
+    }
+
+    class Transaction {
+      +int id
+      +float amount
+      +string type
+      +DateTime date
+      +int account_id
+      +int category_id
+      +string description
+      +int user_id
+    }
+
+    class Budget {
+      +int id
+      +int user_id
+      +int category_id
+      +int year
+      +int month
+      +float limit_value
+    }
+
+    %% Relationships
+    User "1" --> "*" Account : owns
+    User "1" --> "*" Category : defines
+    User "1" --> "*" Transaction : makes
+    Category "1" --> "*" Transaction : classifies
+    Account "1" --> "*" Transaction : records
+    User "1" --> "*" Budget : sets
+    Category "1" --> "*" Budget : scoped

@@ -1,0 +1,57 @@
+---
+title: Arquitetura em Camadas - Projeto CC8550
+---
+flowchart TD
+    subgraph CLI[CLI / Interface Interativa]
+        MCLI[main_cli.py]
+    end
+
+    subgraph Controllers[Camada de Controllers]
+        UC[UserController]
+        AC[AccountController]
+        CC[CategoryController]
+        BC[BudgetController]
+        TC[TransactionController]
+    end
+
+    subgraph Services[Camada de Services]
+        USvc[UserService]
+        ASvc[AccountService]
+        CSvc[CategoryService]
+        BSvc[BudgetService]
+        TSvc[TransactionService]
+    end
+
+    subgraph Repositories[Camada de Repositories]
+        URepo[UserRepository]
+        ARepo[AccountRepository]
+        CRepo[CategoryRepository]
+        BRepo[BudgetRepository]
+        TRepo[TransactionRepository]
+    end
+
+    subgraph DB[Banco de Dados / SQLAlchemy]
+        Base[(SQLAlchemy Base)]
+    end
+
+    MCLI --> UC & AC & CC & BC & TC
+    UC --> USvc
+    AC --> ASvc
+    CC --> CSvc
+    BC --> BSvc
+    TC --> TSvc
+
+    USvc --> URepo
+    ASvc --> ARepo
+    CSvc --> CRepo
+    BSvc --> BRepo
+    TSvc --> TRepo
+
+    URepo --> Base
+    ARepo --> Base
+    CRepo --> Base
+    BRepo --> Base
+    TRepo --> Base
+
+    classDef layer fill:#f8f8f8,stroke:#555,stroke-width:1px;
+    class CLI,Controllers,Services,Repositories,DB layer;
