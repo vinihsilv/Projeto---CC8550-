@@ -11,6 +11,7 @@ click>=8.0
 pytest>=7.0
 pytest-cov>=4.0
 pytest-mock>=3.0
+pytest-benchmark>=4.0
 mutmut>=2.0
 
 
