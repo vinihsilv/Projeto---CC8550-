@@ -2,6 +2,11 @@
 from typing import List
 from src.models.category import Category
 from src.repositories.category_repository import CategoryRepositoryInterface
+from src.services.exceptions import (
+    CategoryNotFoundError,
+    NoDataToUpdateError,
+    CategoryInUseError,
+)
 
 
 class CategoryService:
@@ -10,7 +15,7 @@ class CategoryService:
 
     def create_category(self, name: str, user_id: int):
         if not name or not name.strip():
-            raise ValueError("Nome da categoria é obrigatório.")
+            raise NoDataToUpdateError("Nome da categoria é obrigatório.")
         category = Category(name=name.strip(), user_id=user_id)
         self.repository.create(category)
         return category
@@ -21,7 +26,7 @@ class CategoryService:
     def get_category(self, category_id: int) -> Category:
         category = self.repository.get_category(category_id)
         if not category:
-            raise ValueError("Category not found")
+            raise CategoryNotFoundError("Category not found")
         return category
 
     def update_category(self, category_id: int, data: dict) -> None:

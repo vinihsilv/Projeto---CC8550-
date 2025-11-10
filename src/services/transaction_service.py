@@ -6,6 +6,15 @@ from src.repositories.transaction_repository import TransactionRepositoryInterfa
 from src.repositories.account_repository import AccountRepositoryInterface
 from src.repositories.category_repository import CategoryRepositoryInterface
 from src.repositories.budget_repository import BudgetRepositoryInterface
+from src.services.exceptions import (
+    CategoryNotFoundError,
+    CategoryOwnershipError,
+    AccountNotFoundError,
+    AccountOwnershipError,
+    InsufficientBalanceError,
+    BudgetExceededError,
+    TransactionNotFoundError,
+)
 
 
 class TransactionService:
@@ -33,18 +42,18 @@ class TransactionService:
         # --- Valida categoria ---
         category = self.category_repository.get_category(category_id)
         if not category:
-            raise ValueError(f"Categoria não encontrada: id={category_id}")
+            raise CategoryNotFoundError(f"Categoria não encontrada: id={category_id}")
         if category.user_id != user_id:
-            raise ValueError(
+            raise CategoryOwnershipError(
                 f"Categoria não pertence ao usuário. category.user_id={category.user_id}, user_id={user_id}"
             )
 
         # --- Valida conta ---
         account = self.account_repository.get(account_id)
         if not account:
-            raise ValueError(f"Conta não encontrada: id={account_id}")
+            raise AccountNotFoundError(f"Conta não encontrada: id={account_id}")
         if account.user_id != user_id:
-            raise ValueError(
+            raise AccountOwnershipError(
                 f"Conta não pertence ao usuário. account.user_id={account.user_id}, user_id={user_id}"
             )
 
@@ -54,7 +63,7 @@ class TransactionService:
         # --- Calcula saldo futuro e valida ---
         new_balance = current_balance + (amount if type_ == "income" else -amount)
         if new_balance < 0:
-            raise ValueError(
+            raise InsufficientBalanceError(
                 f"Saldo insuficiente: saldo atual {current_balance}, gasto solicitado {amount}"
             )
 
@@ -70,7 +79,7 @@ class TransactionService:
                     if t.type == "expense"
                 )
                 if total_spent + amount > budget.limit_value:
-                    raise ValueError(
+                    raise BudgetExceededError(
                         f"Gasto ultrapassa orçamento: {total_spent + amount} > {budget.limit_value}"
                     )
 
@@ -95,7 +104,7 @@ class TransactionService:
     def get_transaction(self, transaction_id: int) -> Transaction:
         transaction = self.transaction_repository.get_by_id(transaction_id)
         if not transaction:
-            raise ValueError("Transaction not found")
+            raise TransactionNotFoundError("Transaction not found")
         return transaction
 
     def list_transactions(self, user_id: int) -> List[Transaction]:
@@ -112,7 +121,9 @@ class TransactionService:
     ) -> None:
         transaction = self.transaction_repository.get_by_id(transaction_id)
         if not transaction or transaction.user_id != user_id:
-            raise ValueError("Transação não encontrada ou pertence a outro usuário.")
+            raise TransactionNotFoundError(
+                "Transação não encontrada ou pertence a outro usuário."
+            )
 
         data = {}
         if amount is not None:
@@ -132,7 +143,9 @@ class TransactionService:
     def delete_transaction(self, transaction_id: int, user_id: int) -> None:
         transaction = self.transaction_repository.get_by_id(transaction_id)
         if not transaction or transaction.user_id != user_id:
-            raise ValueError("Transação não encontrada ou pertence a outro usuário.")
+            raise TransactionNotFoundError(
+                "Transação não encontrada ou pertence a outro usuário."
+            )
         self.transaction_repository.delete(transaction_id)
 
     def search_transactions_with_filters(

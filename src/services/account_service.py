@@ -1,6 +1,11 @@
 from typing import List
 from src.models.account import Account
 from src.repositories.account_repository import AccountRepositoryInterface
+from src.services.exceptions import (
+    AccountNotFoundError,
+    AccountAccessError,
+    NoDataToUpdateError,
+)
 
 
 class AccountService:
@@ -18,7 +23,7 @@ class AccountService:
     def get_account(self, account_id: int) -> Account:
         account = self.repository.get(account_id)
         if not account:
-            raise ValueError("Account not found")
+            raise AccountNotFoundError("Account not found")
         return account
 
     def update_account(
@@ -31,12 +36,12 @@ class AccountService:
             data["balance"] = balance
 
         if not data:
-            raise ValueError("Nenhum dado para atualizar.")
+            raise NoDataToUpdateError("Nenhum dado para atualizar.")
 
         self.repository.update(account_id, data)
 
     def delete_account(self, account_id: int, user_id: int):
         account = self.repository.get(account_id)
         if not account or account.user_id != user_id:
-            raise ValueError("Conta não encontrada ou pertence a outro usuário")
+            raise AccountAccessError("Conta não encontrada ou pertence a outro usuário")
         self.repository.delete(account_id)
